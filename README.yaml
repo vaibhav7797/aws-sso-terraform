@@ -5,110 +5,108 @@
 #
 
 # Name of this project
-name: terraform-aws-sso
-
-# Logo for this project
-#logo: docs/logo.png
+name: Terraform AWS SSO
 
 # License of this project
-license: "APACHE2"
-
-# Copyrights
-copyrights:
-  - name: "Cloud Posse, LLC"
-    url: "https://cloudposse.com"
-    year: "2020"
+license: "APACHE"
 
 # Canonical GitHub repo
-github_repo: cloudposse/terraform-aws-sso
+github_repo: clouddrove/terraform-aws-sso
 
 # Badges to display
 badges:
-  - name: "Latest Release"
-    image: "https://img.shields.io/github/release/cloudposse/terraform-aws-sso.svg"
-    url: "https://github.com/cloudposse/terraform-aws-sso/releases/latest"
-  - name: "Slack Community"
-    image: "https://slack.cloudposse.com/badge.svg"
-    url: "https://slack.cloudposse.com"
-  - name: "Discourse Forum"
-    image: "https://img.shields.io/discourse/https/ask.sweetops.com/posts.svg"
-    url: "https://ask.sweetops.com/"
+  - name: "Terraform"
+    image: "https://img.shields.io/badge/terraform-v1.1.7-green"
+    url: "https://www.terraform.io"
+  - name: "Licence"
+    image: "https://img.shields.io/badge/License-APACHE-blue.svg"
+    url: "LICENSE.md"
+  - name: "tfsec"
+    image: "https://github.com/clouddrove/terraform-aws-elasticache/actions/workflows/tfsec.yml/badge.svg"
+    url: "https://github.com/clouddrove/terraform-aws-elasticache/actions/workflows/tfsec.yml"
+  - name: "static-checks"
+    image: "https://github.com/clouddrove/terraform-aws-elasticache/actions/workflows/terraform.yml/badge.svg"
+    url: "https://github.com/clouddrove/terraform-aws-elasticache/actions/workflows/terraform.yml"
 
-# List any related terraform modules that this module may be used with or that this module depends on.
-related:
-  - name: "terraform-null-label"
-    description:
-      "Terraform module designed to generate consistent names and tags for resources. Use terraform-null-label to
-      implement a strict naming convention."
-    url: "https://github.com/cloudposse/terraform-null-label"
-
-# List any resources helpful for someone to get started. For example, link to the hashicorp documentation or AWS documentation.
-references:
-  - name: "Terraform Standard Module Structure"
-    description:
-      "HashiCorp's standard module structure is a file and directory layout we recommend for reusable modules
-      distributed in separate repositories."
-    url: "https://www.terraform.io/docs/modules/index.html#standard-module-structure"
-  - name: "Terraform Module Requirements"
-    description:
-      "HashiCorp's guidance on all the requirements for publishing a module. Meeting the requirements for publishing a
-      module is extremely easy."
-    url: "https://www.terraform.io/docs/registry/modules/publish.html#requirements"
-  - name: "Terraform `random_integer` Resource"
-    description:
-      "The resource random_integer generates random values from a given range, described by the min and max attributes
-      of a given resource."
-    url: "https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/integer"
-  - name: "Terraform Version Pinning"
-    description:
-      "The required_version setting can be used to constrain which versions of the Terraform CLI can be used with your
-      configuration"
-    url: "https://www.terraform.io/docs/configuration/terraform.html#specifying-a-required-terraform-version"
-
-# Short description of this project
+#  description of this project
+# yamllint disable rule:line-length
 description: |-
-  This module configures [AWS Single Sign-On (SSO)](https://aws.amazon.com/single-sign-on/). AWS SSO makes it easy to 
-  centrally manage access to multiple AWS accounts and business applications and provide users with single sign-on 
-  access to all their assigned accounts and applications from one place. With AWS SSO, you can easily manage access and 
-  user permissions to all of your accounts in AWS Organizations centrally. AWS SSO configures and maintains all the 
-  necessary permissions for your accounts automatically, without requiring any additional setup in the individual 
-  accounts. You can assign user permissions based on common job functions and customize these permissions to meet your 
-  specific security requirements. AWS SSO also includes built-in integrations to many business applications, such as 
-  Salesforce, Box, and Microsoft 365.
+  Terraform module to create AWS SSO permission sets and account_assignments.
 
-  With AWS SSO, you can create and manage user identities in AWS SSO’s identity store, or easily connect to your 
-  existing identity source, including Microsoft Active Directory, Okta Universal Directory, and Azure Active Directory 
-  (Azure AD). AWS SSO allows you to select user attributes, such as cost center, title, or locale, from your identity 
-  source, and then use them for attribute-based access control in AWS.
-
-# Introduction to the project
-#introduction: |-
-#  This is an introduction.
-
-# How to use this module. Should be an easy example to copy and paste.
-usage: |-
-  This module contains two sub-modules that can be used in conjunction to provision AWS SSO Permission Sets and to 
-  assign AWS SSO Users and Groups to Permissions Sets in accounts.
-
-  - [modules/account-assignments](/modules/account-assignments) - a module for assigning users and groups to permission 
-  sets in particular accounts
-  - [modules/permission-sets](/modules/permission-sets) - a module for provisioning AWS SSO permission sets
-
-# Example usage
-examples: |-
-  Here is a full example of using these modules to provision permission sets and assign them to accounts:
-  - [`examples/complete`](/examples/complete) - complete example of using these modules
-
-# How to get started quickly
-#quickstart: |-
-#  Here's how to get started...
-
-# Other files to include in this README from the project folder
+# extra content
 include:
-  - "docs/targets.md"
-  - "docs/terraform.md"
+  - "terraform.md"
 
-# Contributors to this project
-contributors:
-  - name: "Matt Calhoun"
-    github: "mcalhoun"
+# How to use this project
+# yamllint disable rule:line-length
+usage : |-
+  Here are some examples of how you can use this module in your inventory structure:
+  ### Permission sets
+```hcl
+    module "permission_sets" {
+  source = "../../modules/permission-sets"
+
+  permission_sets = [
+    {
+      name               = "AdministratorAccess-c",
+      environment        = "prod"
+      label_order        = ["name", "environment"]
+      description        = "Allow Full Access to the account",
+      relay_state        = "",
+      session_duration   = "",
+      inline_policy      = "",
+      policy_attachments = ["arn:aws:iam::aws:policy/AdministratorAccess"]
+      customer_managed_policy_attachments = [{
+        name = aws_iam_policy.S3Access.name
+        path = aws_iam_policy.S3Access.path
+      }]
+    },
+    {
+      name                                = "S3AdministratorAccess",
+      environment                         = "prod"
+      label_order                         = ["name", "environment"]
+      description                         = "Allow Full S3 Admininstrator access to the account",
+      relay_state                         = "",
+      session_duration                    = "",
+      inline_policy                       = data.aws_iam_policy_document.S3Access.json,
+      policy_attachments                  = []
+      customer_managed_policy_attachments = []
+    }
+  ]
+}
+
+```
+
+  ### SSO account assignments
+```hcl
+    module "sso_account_assignments" {
+  source = "../../modules/account-assignments"
+
+  account_assignments = [
+    {
+      account             = "26647501****", # Represents the "production" account
+      permission_set_arn  = module.permission_sets.permission_sets["AdministratorAccess-c"].arn,
+      permission_set_name = "AdministratorAccess",
+      principal_type      = "GROUP",
+      principal_name      = "testing"
+    },
+    {
+      account             = "26647501***",
+      permission_set_arn  = module.permission_sets.permission_sets["S3AdministratorAccess"].arn,
+      permission_set_name = "S3AdministratorAccess",
+      principal_type      = "GROUP",
+      principal_name      = "Production"
+    },
+    {
+      account             = "266475012***", # Represents the "Sandbox" account
+      permission_set_arn  = module.permission_sets.permission_sets["AdministratorAccess-c"].arn,
+      permission_set_name = "AdministratorAccess",
+      principal_type      = "GROUP",
+      principal_name      = "Dev"
+    },
+  ]
+
+}
+
+```
+

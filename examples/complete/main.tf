@@ -1,13 +1,20 @@
+provider "aws" {
+  region = "ap-south-1"
+}
+
+
+
 module "permission_sets" {
   source = "../../modules/permission-sets"
 
   permission_sets = [
     {
-      name               = "AdministratorAccess",
+      name               = "AdministratorAccess-c",
+      environment        = "prod"
+      label_order        = ["name", "environment"]
       description        = "Allow Full Access to the account",
       relay_state        = "",
       session_duration   = "",
-      tags               = {},
       inline_policy      = "",
       policy_attachments = ["arn:aws:iam::aws:policy/AdministratorAccess"]
       customer_managed_policy_attachments = [{
@@ -17,16 +24,16 @@ module "permission_sets" {
     },
     {
       name                                = "S3AdministratorAccess",
+      environment                         = "prod"
+      label_order                         = ["name", "environment"]
       description                         = "Allow Full S3 Admininstrator access to the account",
       relay_state                         = "",
       session_duration                    = "",
-      tags                                = {},
       inline_policy                       = data.aws_iam_policy_document.S3Access.json,
       policy_attachments                  = []
       customer_managed_policy_attachments = []
     }
   ]
-  context = module.this.context
 }
 
 module "sso_account_assignments" {
@@ -34,33 +41,32 @@ module "sso_account_assignments" {
 
   account_assignments = [
     {
-      account             = "111111111111", # Represents the "production" account
-      permission_set_arn  = module.permission_sets.permission_sets["AdministratorAccess"].arn,
+      account             = "266475012761", # Represents the "production" account
+      permission_set_arn  = module.permission_sets.permission_sets["AdministratorAccess-c"].arn,
       permission_set_name = "AdministratorAccess",
       principal_type      = "GROUP",
-      principal_name      = "Administrators"
+      principal_name      = "testing"
     },
     {
-      account             = "111111111111",
+      account             = "266475012761",
       permission_set_arn  = module.permission_sets.permission_sets["S3AdministratorAccess"].arn,
       permission_set_name = "S3AdministratorAccess",
       principal_type      = "GROUP",
-      principal_name      = "S3Adminstrators"
+      principal_name      = "Production"
     },
     {
-      account             = "222222222222", # Represents the "Sandbox" account
-      permission_set_arn  = module.permission_sets.permission_sets["AdministratorAccess"].arn,
+      account             = "266475012761", # Represents the "Sandbox" account
+      permission_set_arn  = module.permission_sets.permission_sets["AdministratorAccess-c"].arn,
       permission_set_name = "AdministratorAccess",
       principal_type      = "GROUP",
-      principal_name      = "Developers"
+      principal_name      = "Dev"
     },
   ]
-  context = module.this.context
+
 }
 
-#-----------------------------------------------------------------------------------------------------------------------
 # CREATE SOME IAM POLCIES TO ATTACH AS INLINE
-#-----------------------------------------------------------------------------------------------------------------------
+
 data "aws_iam_policy_document" "S3Access" {
   statement {
     sid = "1"
@@ -73,12 +79,11 @@ data "aws_iam_policy_document" "S3Access" {
   }
 }
 
-#-----------------------------------------------------------------------------------------------------------------------
 # CREATE SOME IAM POLCIES TO ATTACH AS MANAGED
-#-----------------------------------------------------------------------------------------------------------------------
+
 resource "aws_iam_policy" "S3Access" {
   name   = "S3Access"
   path   = "/"
   policy = data.aws_iam_policy_document.S3Access.json
-  tags   = module.this.tags
+  tags   = module.labels.tags
 }
